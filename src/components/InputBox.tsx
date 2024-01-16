@@ -2,6 +2,7 @@ import { Data, User } from "@/app/data";
 import UserPill from "./UserPill";
 import { useEffect, useRef, useState } from "react";
 import _ from "lodash";
+import ListItem from "./ListItem";
 
 
 
@@ -12,6 +13,7 @@ export default function InputBox() {
     const [matchingUsers, setMatchingUsers] = useState<User[]>([])
     const [selectedUsers, setSelectedUsers] = useState<User[]>([])
     const [backspaceActive, setBackspaceActive] = useState(false)
+    const [selectedIndex,setSelectedIndex] = useState(0)
 
     // Input State
     const [searchValue, setSearchValue] = useState("")
@@ -50,17 +52,38 @@ export default function InputBox() {
     }, [])
 
 
-    const HandleBackspace = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const HandleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Backspace' && searchValue === '') {
             let elements = usersRef.current?.getElementsByClassName("pill")
             if (elements?.length !== 0) {
                 let classes = elements?.item(elements.length - 1)?.classList
                 if (classes?.contains("border-2")) {
                     RemoveUser(selectedUsers[selectedUsers.length - 1])
+                    setBackspaceActive(false)
                 } else {
                     elements?.item(elements.length - 1)?.classList.add("border-2")
                     setBackspaceActive(true)
                 }
+            }
+        } else if(event.key === "ArrowDown" || event.key == "ArrowUp"){
+            {
+                console.log("Trigger")
+                let n = matchingUsers.length
+                if(event.key == "ArrowUp"){
+
+                    if(selectedIndex !== -1){
+                        setSelectedIndex(selectedIndex - 1)  
+                    }
+                } else {
+                    if(selectedIndex <( n - 1)){
+                        setSelectedIndex(selectedIndex + 1)
+                    }
+                }
+            }
+        } else if(event.key === "Enter"){
+            if(selectedIndex !== -1){
+                AddUser(0,matchingUsers[selectedIndex])
+                setSelectedIndex(-1)
             }
         }
     }
@@ -70,6 +93,7 @@ export default function InputBox() {
         if (elements?.length !== 0) {
             let classes = elements?.item(elements.length - 1)?.classList
             elements?.item(elements.length - 1)?.classList.remove("border-2")
+            setBackspaceActive(false)
         }
     }
 
@@ -143,20 +167,21 @@ export default function InputBox() {
                     return <UserPill key={index} user={el} RemoveUser={RemoveUser} />
                 })}
                 <div className="relative">
-                    <input onKeyDown={HandleBackspace} ref={inputRef} className="p-3 border-b-2 border-blue-700 text-black text-xl w-36 outline-none grow rounded-md " onChange={OnInputChange} value={searchValue} ></input>
+                    <input onKeyDown={HandleKeyPress} ref={inputRef} className="p-3 border-b-2 border-blue-700 text-black text-xl w-36 outline-none grow rounded-md " onChange={OnInputChange} value={searchValue} ></input>
 
                     <div className='bg-white shadow-xl rounded-md absolute top-14 left-0 w-72 md:w-96' hidden={!isInputInFocus} >
-                        <div className="bg-blue-100 p-2" >Results</div>
+                        {/* <div className="bg-blue-100 p-2" >Results</div>
                         <div className="bg-white p-2" >
                             {matchingUsers.map((el, index) => {
-                                return <div className="flex flex-col md:flex-row justify-between p-2 hover:bg-blue-100 cursor-pointer " key={index}
+                                return <div className={"flex flex-col md:flex-row justify-between p-2 hover:bg-blue-100 cursor-pointer "} key={index}
                                     onClick={() => AddUser(el.id, el)}
                                 >
                                     <div className='flex flex-row items-center' > <img className='w-8 h-8 rounded-full mx-2' src={el.avatar} ></img> {el.full_name}</div>
                                     <div className='text-gray-500' >{el.email}</div>
                                 </div>
                             })}
-                        </div>
+                        </div> */}
+                        <ListItem selectedUser={selectedIndex} setSelectedUser={setSelectedIndex}  AddUser={AddUser} matchingUsers={matchingUsers} />
                     </div>
                 </div>
             </div>
