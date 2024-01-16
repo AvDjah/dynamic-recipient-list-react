@@ -11,6 +11,7 @@ export default function InputBox() {
     const [users, setUsers] = useState<User[]>([])
     const [matchingUsers, setMatchingUsers] = useState<User[]>([])
     const [selectedUsers, setSelectedUsers] = useState<User[]>([])
+    const [count, setCount] = useState(0)
 
     // Input State
     const [searchValue, setSearchValue] = useState("")
@@ -18,9 +19,8 @@ export default function InputBox() {
 
     // Refs
     const inputRef = useRef<HTMLInputElement | null>(null)
-    const scrollRef = useRef<HTMLInputElement | null>(null)
     const dummyRef = useRef<HTMLInputElement | null>(null)
-
+    const usersRef = useRef<HTMLInputElement | null>(null)
 
     useEffect(() => {
         setUsers(Data);
@@ -49,17 +49,26 @@ export default function InputBox() {
         };
     }, [])
 
-    // useEffect(() => {
-    //     if (scrollRef.current) {
-    //         scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-    //     }
-    // })
+
+    const HandleBackspace = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Backspace' && searchValue === '') {
+            console.log(usersRef.current?.getElementsByClassName("pill"))
+            let elements = usersRef.current?.getElementsByClassName("pill")
+            if (elements?.length !== 0) {
+                console.log(elements?.item(elements.length - 1))
+                let classes = elements?.item(elements.length - 1)?.classList
+                if(classes?.contains("border-2")){
+                    console.log("already there")
+                    RemoveUser(selectedUsers[selectedUsers.length - 1])
+                } else {
+                    elements?.item(elements.length - 1)?.classList.add("border-2")
+                }
+            }
+        }
+    }
+
 
     const OnInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // if (scrollRef.current) {
-        //     scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-        // }
-
 
         let prefix: string;
         if (e.currentTarget.value === "") {
@@ -115,15 +124,15 @@ export default function InputBox() {
 
 
     return <div className="m-2 p-2 mx-auto rounded-md border-2 mt-4" >
-        <div ref={scrollRef} className='flex flex-row items-center flex-wrap  px-4 scrollbar-thin scrollbar-thumb-blue-500 ' >
-            <div className="flex flex-row flex-wrap" >
+        <div className='flex flex-row items-center flex-wrap  px-4 scrollbar-thin scrollbar-thumb-blue-500 ' >
+            <div className="flex flex-row flex-wrap" ref={usersRef} >
                 {selectedUsers.map((el, index) => {
                     return <UserPill key={index} user={el} RemoveUser={RemoveUser} />
                 })}
                 <div className="relative">
-                    <input ref={inputRef} className="p-3 border-b-2 border-blue-700 text-black text-xl w-36 outline-none grow rounded-md " onChange={OnInputChange} value={searchValue} ></input>
+                    <input onKeyDown={HandleBackspace} ref={inputRef} className="p-3 border-b-2 border-blue-700 text-black text-xl w-36 outline-none grow rounded-md " onChange={OnInputChange} value={searchValue} ></input>
 
-                    <div className='bg-white shadow-xl rounded-md absolute top-14 left-0 w-96'  hidden={!isInputInFocus} >
+                    <div className='bg-white shadow-xl rounded-md absolute top-14 left-0 w-72 md:w-96' hidden={!isInputInFocus} >
                         <div className="bg-blue-100 p-2" >Results</div>
                         <div className="bg-white p-2" >
                             {matchingUsers.map((el, index) => {
