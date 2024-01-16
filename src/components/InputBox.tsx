@@ -11,7 +11,7 @@ export default function InputBox() {
     const [users, setUsers] = useState<User[]>([])
     const [matchingUsers, setMatchingUsers] = useState<User[]>([])
     const [selectedUsers, setSelectedUsers] = useState<User[]>([])
-    const [count, setCount] = useState(0)
+    const [backspaceActive, setBackspaceActive] = useState(false)
 
     // Input State
     const [searchValue, setSearchValue] = useState("")
@@ -52,21 +52,26 @@ export default function InputBox() {
 
     const HandleBackspace = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Backspace' && searchValue === '') {
-            console.log(usersRef.current?.getElementsByClassName("pill"))
             let elements = usersRef.current?.getElementsByClassName("pill")
             if (elements?.length !== 0) {
-                console.log(elements?.item(elements.length - 1))
                 let classes = elements?.item(elements.length - 1)?.classList
-                if(classes?.contains("border-2")){
-                    console.log("already there")
+                if (classes?.contains("border-2")) {
                     RemoveUser(selectedUsers[selectedUsers.length - 1])
                 } else {
                     elements?.item(elements.length - 1)?.classList.add("border-2")
+                    setBackspaceActive(true)
                 }
             }
         }
     }
 
+    const RemoveBackspaceActivation = () => {
+        let elements = usersRef.current?.getElementsByClassName("pill")
+        if (elements?.length !== 0) {
+            let classes = elements?.item(elements.length - 1)?.classList
+            elements?.item(elements.length - 1)?.classList.remove("border-2")
+        }
+    }
 
     const OnInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
@@ -78,6 +83,10 @@ export default function InputBox() {
 
         const matchingElements = _.filter(users, user => _.startsWith(user.full_name.toLowerCase(), prefix));
 
+        if(e.currentTarget.value !== "" && backspaceActive === true){
+            RemoveBackspaceActivation()
+        }
+
         // State Controls
         setSearchValue(e.currentTarget.value)
         setMatchingUsers(matchingElements)
@@ -85,6 +94,8 @@ export default function InputBox() {
 
 
     const AddUser = (id: number, user: User) => {
+
+        RemoveBackspaceActivation()
 
         // Check all users remaining after selection
         const filtered = _.filter(users, function (u) { return user.id !== u.id })
@@ -102,6 +113,8 @@ export default function InputBox() {
     }
 
     const RemoveUser = (user: User) => {
+
+        RemoveBackspaceActivation()
 
         // Filter Remaining Users
         const filtered = _.filter(selectedUsers, function (u) {
